@@ -86,21 +86,21 @@ Environment -> New -> Environment -> `petstore_swagger_io`
     "status": "sold"
 }
 ```
-
 ![Задание 3](images/Задание3.png)
 ![Задание 3 (GET)](images/Задание3(GET).png)
 
 ### Задание №4:
 Удалите созданного питомца («Барсик») с помощью `DELETE`-запроса. Затем убедитесь, что питомец действительно удалён из системы, выполнив `GET`-запрос.
 
-![alt text](images/Задание4.png)
-![alt text](images/Задание4(GET).png)
+![Задание 4](images/Задание4.png)
+![Задание 4 (GET)](images/Задание4(GET).png)
 
 ### Задание №5:
 Напишите набор автоматизированных тестов для проверки основных операций CRUD над питомцами: создание, чтение, обновление и удаление. Каждое действие должно проверяться отдельным тестовым сценарием.
 
+***[Задание 2]***
 
-***[Задание 1]***
+#### Get a created pet
 
 Post-response 
 ```
@@ -117,9 +117,9 @@ pm.test("Ответ содержит данные о питомце", function()
 });
 ```
 
-***[Задание 2]***
+#### Create a pet
 
-![alt text](images/Задание5(Задание2).png)
+![Задание 5 (Задание 2)](images/Задание5(Задание2).png)
 
 Переменные в collection (Pet store):
 |||
@@ -175,5 +175,59 @@ pm.test("Ответ содержит данные о питомце", function()
     pm.expect(jsonData.name).to.equal("Рыжик");
     pm.expect(jsonData.category.name).to.equal("cats");
     pm.expect(jsonData.status).to.equal("available");
+});
+```
+
+***[Задание 3]***
+
+![Задание 5 (Задание 3)](images/Задание5(Задание3).png)
+
+Pre-request:
+```
+pm.collectionVariables.set("pet_name", "Барсик");
+pm.collectionVariables.set("pet_status", "sold");
+
+pm.test("Установлены данные о питомце", function(){
+    pm.expect(pm.collectionVariables.get("pet_name")).to.equal("Барсик");
+    pm.expect(pm.collectionVariables.get("pet_status")).to.equal("sold");
+});
+```
+
+Post-response:
+```
+pm.test("Status code is 200", function () {
+    pm.response.to.have.status(200);
+});
+
+pm.test("Данные о питомце обновлены", function () {
+    var jsonData = pm.response.json();
+    pm.expect(jsonData.name).to.eql(pm.collectionVariables.get("pet_name"));
+    pm.expect(jsonData.status).to.eql(pm.collectionVariables.get("pet_status"));
+});
+```
+
+***[Задание 4]***
+
+![Задание 5 (Задание 4)](images/Задание5(Задание4).png)
+![Задание 5 (Задание 4)](images/Задание5(Задание4).png)
+
+Post-response:
+```
+pm.test("Проверка статус-кода (элемент удален или не найден)", function () {
+    const responseText = pm.response.text();
+    if(responseText && responseText.trim().length>0){
+        let jsonData;
+        try{
+            jsonData = pm.response.json();
+            pm.expect(jsonData).to.be.an("object");
+            pm.expect(jsonData).to.have.any.keys("error", "message");
+        }
+        catch(e){
+            pm.expect.fail(`Ответ невалидный JSON / Неправильный запрос`);
+        }
+    }
+    else{
+        pm.expect(responseText).to.be.empty;
+    }
 });
 ```
